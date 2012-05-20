@@ -2,9 +2,9 @@
 App::uses('AppController', 'Controller');
 App::uses('File', 'Utility');
 /**
- * Gallery Controller
+ * EmailBlast Controller
  *
- * @property Gallery $Gallery
+ * @property EmailBlast $EmailBlast
  */
 class EmailBlastController extends AppController {
     
