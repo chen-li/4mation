@@ -102,4 +102,4 @@
 	define('CRON_DISPATCHER',true);
 	$Dispatcher = new Dispatcher();
 	$Dispatcher->dispatch(new CakeRequest($argv[1]), new CakeResponse(array('charset' => Configure::read('App.encoding'))));
-	//php D:\xampp\dev\4mation\app\webroot\cron_dispatcher.php /EmailBlast/test
+	//php D:\xampp\dev\4mation\app\webroot\cron_dispatcher.php /EmailBlast/blast

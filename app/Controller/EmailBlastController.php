@@ -1,13 +1,16 @@
 <?php
 App::uses('AppController', 'Controller');
-App::uses('File', 'Utility');
+
 /**
  * EmailBlast Controller
  *
  * @property EmailBlast $EmailBlast
  */
+if (!defined('WEBROOT_FULL_PATH')) {
+    define('WEBROOT_FULL_PATH', ROOT . DS . APP_DIR . DS . WEBROOT_DIR . DS);
+}
 class EmailBlastController extends AppController {
-    
+
     public $paginate;
 
     public $helpers = array('Paginator');
@@ -42,22 +45,22 @@ class EmailBlastController extends AppController {
         $this->autoRender = false;
         $start = 1;
         
-        if(!file_exists($this->tmp_email_template)){
+        if(!file_exists(WEBROOT_FULL_PATH . $this->tmp_email_template)){
             $products = $this->getRandomProducts($this->product_num);//get 20 random products
             $this->saveProductsOnServer($products);
         }else{
-            $content = file_get_contents($this->tmp_email_template);
+            $content = file_get_contents(WEBROOT_FULL_PATH . $this->tmp_email_template);
         }
         
-        if(!file_exists($this->tmp_current_subscribers)){
+        if(!file_exists(WEBROOT_FULL_PATH . $this->tmp_current_subscribers)){
             $start = 1;
         }else{
-            $ini = parse_ini_file($this->tmp_current_subscribers);//read the variables defined in the temporary ini file
+            $ini = parse_ini_file(WEBROOT_FULL_PATH . $this->tmp_current_subscribers);//read the variables defined in the temporary ini file
             $start = $ini['start'] + 1;
             if($start > $ini['pageCount']){//the job of email blasting is completed
                 //clear all the temp files
-                unlink($this->tmp_email_template);
-                unlink($this->tmp_current_subscribers);
+                unlink(WEBROOT_FULL_PATH . $this->tmp_email_template);
+                unlink(WEBROOT_FULL_PATH . $this->tmp_current_subscribers);
                 return true;
             }
         }
@@ -75,7 +78,7 @@ class EmailBlastController extends AppController {
             }
         }
         
-        return true;
+        return false;
     }
     
     /**
@@ -116,7 +119,7 @@ class EmailBlastController extends AppController {
         $str  = '[current_subscribers]' . "\r\n";
         $str .= 'start = ' . $start . "\r\n";
         $str .= 'pageCount = ' . $page_count . "\r\n";
-        $this->createTemplate($this->tmp_current_subscribers, $str);
+        $this->createTemplate(WEBROOT_FULL_PATH . $this->tmp_current_subscribers, $str);
     }
     
     /**
@@ -124,19 +127,21 @@ class EmailBlastController extends AppController {
      * @param array $products 
      */
     private function saveProductsOnServer($products){
-        $file_path = '../View/Emails/text/products.ctp';
+        $file_path = ROOT . DS . APP_DIR . DS . 'View' . DS . 'Emails' . DS . 'text' . DS . 'products.ctp';
         if(file_exists($file_path))
             $content = file_get_contents($file_path);
         
         preg_match_all('/\[(Product_[A-Za-z]+)_([0-9]+)\]/', $content, $matches);
         
         foreach($matches[0] as $key => $match){
-            $replace = $products[$matches[2][$key]]['products'][strtolower($matches[1][$key])];
-            $replace = (isset($replace)) ? $replace : '';
+            if(isset($products[$matches[2][$key]]['products'][strtolower($matches[1][$key])]))
+                $replace = $products[$matches[2][$key]]['products'][strtolower($matches[1][$key])];
+            else
+                $replace = '';
             $content = str_replace($match, $replace, $content);
         }
         
-        $this->createTemplate($this->tmp_email_template, $content);
+        $this->createTemplate(WEBROOT_FULL_PATH . $this->tmp_email_template, $content);
     }
     
     /**
